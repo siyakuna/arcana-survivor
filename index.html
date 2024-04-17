@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="jp">
+  <head>
+    <meta charset="utf-8" />
+    <title>アルカナサバイバー</title>
+    <style>
+      * {
+        padding: 0;
+        margin: 0;
+       
+      }
+      canvas {
+        background: #eee;
+        display: block;
+  width: 99%;
+  height: 99%;
+  margin: 0;
+  padding: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="myCanvas" width="1920" height="1080" ></canvas>
+
+    <script>
+      // JavaScript のコードはここ
+    const canvas = document.getElementById("myCanvas");
+    const ctx = canvas.getContext("2d");
+    const chara = new Image();
+    const enemyChara = new Image();
+    chara.src = "antaresu.png"
+    let selctChara = "antaresu";//初期キャラ
+    let x = 900;
+    let y = 500;
+    let dx = 0;
+    let dy = 0;
+    let dxRemove = 0.94;
+    let dyRemove = 0.94;
+    var yStop = true;
+    var xStop = true;
+    var hanten = 1
+    let enemyXY = []
+    let enemySize = 40;
+    let weapon = [];
+    var maxHp = 1;
+    var hp = 1;
+    var stopEnemy = false;
+      enemyChara.src = "enemy-1.png"
+      if(selctChara = "antaresu"){//キャラ選択結果
+        chara.src = "antaresu.png";
+        maxHp = 500;
+        hp = maxHp;
+        var charaSizeX = 48;
+        var charaSizeY = 110;
+      }
+      OneSkil()
+    function syori() {
+          //枠の判定
+    if(x <= 0){//左
+      x = 1;
+      dx = 0;
+    } 
+    if(y <= 0){//上
+      y = 1;
+      dy =0;
+    }
+    if(x + 48 >= 1920){//右
+      x = 1871;
+      dx = 0;
+    }
+    if(y +110 >= 1080){
+      y = 969;
+      dy = 0;
+    }
+
+
+    x += dx;
+    y += dy;
+    if(yStop) dy = dy * dyRemove;
+    if(xStop) dx = dx * dxRemove;
+    for (let i = 0; i < Object.keys(enemyXY).length; i++) {//敵の動き
+      var enemyInfo = enemyXY[i]
+      var eDx = x - enemyInfo[0];
+      var eDy = y - enemyInfo[1];
+      var s = 0.3 * enemyInfo[2].boost;//スピード
+      var d = Math.sqrt((x - enemyInfo[0]) ** 2 + (y - enemyInfo[1]) ** 2);
+      var t = d / s;
+      var vx = eDx / t;
+      var vy = eDy / t;
+      if((stopEnemy)){//ヒプノーシス発動時
+        enemyInfo[2].count  = 5 * 100;
+        enemyInfo[2].boost  = 0;
+      }
+      if(enemyInfo[2].count  < 0){
+        enemyInfo[2].boost  = 1;
+      }else{
+        enemyInfo[2].count += -1;
+        enemyInfo[2].boost  = 0;
+      }
+      enemyInfo[0] += vx;
+      enemyInfo[1] += vy;
+      //pcとの衝突判定
+      if((enemyInfo[0] < x + charaSizeX)&&(enemyInfo[1] < y + charaSizeY)){//左上から
+        if((enemyInfo[0] + enemySize > x)&&(enemyInfo[1] + enemySize > y))//右下から
+        hp += -1;
+      }
+    }
+    stopEnemy = false;
+    }
+    function enemy(n){//敵配置
+      for(let i = 0; i < n; i++){
+        var hen = Math.floor(Math.random() * 4)
+      if(hen === 0)enemyXY.push([-10, Math.floor(Math.random() * 1080), {HP: 10, boost: 1,count: 0}])//左
+      if(hen === 1)enemyXY.push([1930, Math.floor(Math.random() * 1080), {HP: 10, boost: 1,count: 0}])//右
+      if(hen === 2)enemyXY.push([Math.floor(Math.random() * 1920), -10, {HP: 10, boost: 1,count: 0}])//上
+      if(hen === 3)enemyXY.push([Math.floor(Math.random() * 1920), 1090, {HP: 10, boost: 1,count: 0}])//下
+      }
+    }
+//PC能力
+    function OneSkil(){
+      if(selctChara = "antaresu"){
+        weapon.push('potion');
+      }
+    }
+    function weaponSyori(){
+    }
+    function skill(){
+      if(selctChara = "antaresu"){
+        stopEnemy = true;
+        var enemySizeTime = 5;
+      }
+    }
+
+      function draw() {//描写
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.beginPath();
+    for (let i = 0; i < Object.keys(enemyXY).length; i++) {
+      var enemyInfo = enemyXY[i]
+    //  console.log(enemyInfo[0])
+    ctx.drawImage(enemyChara, enemyInfo[0], enemyInfo[1], enemySize, enemySize);
+    }  
+    ctx.drawImage(chara, x, y, charaSizeX, charaSizeY);
+  //体力バー
+if(hp > 0){    ctx.fillStyle = "red";
+    ctx.fillRect(x, y + charaSizeY + 10, charaSizeX, 10)
+    ctx.fillStyle = "blue";
+    var hpbar = hp / maxHp
+    ctx.fillRect(x, y + charaSizeY + 10, charaSizeX *  hpbar, 10);}
+//    ctx.font = "48px serif";
+//    ctx.strokeText(`HP:${hp}`, 10, 50);
+    
+    ctx.closePath();
+    if(hp < 0)return
+    syori();
+}
+document.addEventListener('keydown', event => {
+  if(hp < 0)return
+    if (event.code === 'KeyW') {
+        yStop = false;
+        dy = -1.5;
+    }
+    if (event.code === 'KeyS') {
+        yStop = false;
+        dy = 1.5;
+    }
+    if (event.code === 'KeyA') {
+      chara.src = "antaresu-l.png"
+        xStop = false;
+        dx = -1.5;
+        hanten = -1;
+    }
+    if (event.code === 'KeyD') {
+      chara.src = "antaresu.png"
+        xStop = false;
+        dx = 1.5;
+        hanten = 1;
+    }
+});
+document.addEventListener('keyup', event => {
+    if (event.code === 'KeyW') {
+        yStop = true
+    }
+    if (event.code === 'KeyS') {
+        yStop = true
+    }
+    if (event.code === 'KeyA') {
+        xStop = true
+    }
+    if (event.code === 'KeyD') {
+        xStop = true
+    }
+});
+enemy(10)
+setInterval(draw, 10);
+    </script>
+  </body>
+</html>
