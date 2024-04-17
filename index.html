@@ -32,8 +32,10 @@
     const canvas = document.getElementById("myCanvas");
     const ctx = canvas.getContext("2d");
     const chara = new Image();
-    const enemyChara = new Image();
+    const enemyCharaR = new Image();
+    const enemyCharaL = new Image();
     const backgroundimg = new Image();
+    const potion = new Image();
     backgroundimg.src = "haikei.png"
     chara.src = "antaresu.png"
     let selctChara = "antaresu";//初期キャラ
@@ -45,8 +47,9 @@
     let dyRemove = 0.94;
     var yStop = true;
     var xStop = true;
-    var hanten = 1
-    let enemyXY = []
+    var hanten = 1;
+    let enemyXY = [];
+    let potionXY = [];
     let enemySizeX = 50;
     let enemySizeY =  110;
     let weapon = [];
@@ -56,7 +59,8 @@
     var timer = 0;
     var Ftimer = 0;
     var mp = 30;
-      enemyChara.src = "enemy-r.png"
+    enemyCharaR.src = "enemy-r.png"
+    enemyCharaL.src = "enemy-l.png"
       if(selctChara = "antaresu"){//キャラ選択結果
         chara.src = "antaresu.png";
         maxHp = 500;
@@ -94,7 +98,7 @@
     if(Ftimer >= 100){
       Ftimer = 0
       timer++;
-      enemy(3);
+      enemy(0);
       if(mp < 30)mp++;
     }else{
       Ftimer++;
@@ -122,9 +126,9 @@
       enemyInfo[0] += vx;
       enemyInfo[1] += vy;
       if(vx < 0){
-        enemyInfo[2].rl = "enemy-r.png"
+        enemyInfo[2].rl = "r"
       }else{
-        enemyInfo[2].rl = "enemy-l.png"
+        enemyInfo[2].rl = "l"
       }
       //pcとの衝突判定
       if((enemyInfo[0] < x + charaSizeX)&&(enemyInfo[1] < y + charaSizeY)){//左上から
@@ -150,6 +154,10 @@
       }
     }
     function weaponSyori(){
+      if(weapon.includes('potion')){
+        potionXY.push([x, y]);
+        console.log('ok')
+      }
     }
     function skill(){
       if(selctChara = "antaresu"){
@@ -165,8 +173,11 @@
     for (let i = 0; i < Object.keys(enemyXY).length; i++) {
       var enemyInfo = enemyXY[i]
     //  console.log(enemyInfo[0])
-      enemyChara.src = enemyInfo[2].rl
-    ctx.drawImage(enemyChara, enemyInfo[0], enemyInfo[1], enemySizeX, enemySizeY);
+    if(enemyInfo[2].rl === "r"){
+      ctx.drawImage(enemyCharaR, enemyInfo[0], enemyInfo[1], enemySizeX, enemySizeY);
+    }else{
+      ctx.drawImage(enemyCharaL, enemyInfo[0], enemyInfo[1], enemySizeX, enemySizeY);
+    }
     }  
     ctx.drawImage(chara, x, y, charaSizeX, charaSizeY);
   //体力バー
