@@ -28,6 +28,8 @@
     const ctx = canvas.getContext("2d");
     const chara = new Image();
     const enemyChara = new Image();
+    const backgroundimg = new Image();
+    backgroundimg.src = "haikei.png"
     chara.src = "antaresu.png"
     let selctChara = "antaresu";//初期キャラ
     let x = 900;
@@ -40,12 +42,16 @@
     var xStop = true;
     var hanten = 1
     let enemyXY = []
-    let enemySize = 40;
+    let enemySizeX = 50;
+    let enemySizeY =  110;
     let weapon = [];
     var maxHp = 1;
     var hp = 1;
     var stopEnemy = false;
-      enemyChara.src = "enemy-1.png"
+    var timer = 0;
+    var Ftimer = 0;
+    var mp = 30;
+      enemyChara.src = "enemy-r.png"
       if(selctChara = "antaresu"){//キャラ選択結果
         chara.src = "antaresu.png";
         maxHp = 500;
@@ -54,21 +60,22 @@
         var charaSizeY = 110;
       }
       OneSkil()
+
     function syori() {
           //枠の判定
     if(x <= 0){//左
       x = 1;
       dx = 0;
     } 
-    if(y <= 0){//上
-      y = 1;
+    if(y <= 170){//上
+      y = 171;
       dy =0;
     }
     if(x + 48 >= 1920){//右
       x = 1871;
       dx = 0;
     }
-    if(y +110 >= 1080){
+    if(y + 110 >= 1080){
       y = 969;
       dy = 0;
     }
@@ -78,8 +85,18 @@
     y += dy;
     if(yStop) dy = dy * dyRemove;
     if(xStop) dx = dx * dxRemove;
+    
+    if(Ftimer >= 100){
+      Ftimer = 0
+      timer++;
+      enemy(3);
+      if(mp < 30)mp++;
+    }else{
+      Ftimer++;
+    }
+
     for (let i = 0; i < Object.keys(enemyXY).length; i++) {//敵の動き
-      var enemyInfo = enemyXY[i]
+      var enemyInfo = enemyXY[i];
       var eDx = x - enemyInfo[0];
       var eDy = y - enemyInfo[1];
       var s = 0.3 * enemyInfo[2].boost;//スピード
@@ -99,9 +116,14 @@
       }
       enemyInfo[0] += vx;
       enemyInfo[1] += vy;
+      if(vx < 0){
+        enemyInfo[2].rl = "enemy-r.png"
+      }else{
+        enemyInfo[2].rl = "enemy-l.png"
+      }
       //pcとの衝突判定
       if((enemyInfo[0] < x + charaSizeX)&&(enemyInfo[1] < y + charaSizeY)){//左上から
-        if((enemyInfo[0] + enemySize > x)&&(enemyInfo[1] + enemySize > y))//右下から
+        if((enemyInfo[0] + enemySizeX > x)&&(enemyInfo[1] + enemySizeY > y))//右下から
         hp += -1;
       }
     }
@@ -109,11 +131,11 @@
     }
     function enemy(n){//敵配置
       for(let i = 0; i < n; i++){
-        var hen = Math.floor(Math.random() * 4)
-      if(hen === 0)enemyXY.push([-10, Math.floor(Math.random() * 1080), {HP: 10, boost: 1,count: 0}])//左
-      if(hen === 1)enemyXY.push([1930, Math.floor(Math.random() * 1080), {HP: 10, boost: 1,count: 0}])//右
-      if(hen === 2)enemyXY.push([Math.floor(Math.random() * 1920), -10, {HP: 10, boost: 1,count: 0}])//上
-      if(hen === 3)enemyXY.push([Math.floor(Math.random() * 1920), 1090, {HP: 10, boost: 1,count: 0}])//下
+        var hen = Math.floor(Math.random() * 3)
+      if(hen === 0)enemyXY.push([-10, Math.floor(Math.random() * 910) + 170, {HP: 10, boost: 1,count: 0,rl: "r"}])//左
+      if(hen === 1)enemyXY.push([1930, Math.floor(Math.random() * 910) + 170, {HP: 10, boost: 1,count: 0,rl: "r"}])//右
+//      if(hen === 2)enemyXY.push([Math.floor(Math.random() * 1920), -10, {HP: 10, boost: 1,count: 0}])//上
+      if(hen === 2)enemyXY.push([Math.floor(Math.random() * 1920), 1090, {HP: 10, boost: 1,count: 0,rl: "r"}])//下
       }
     }
 //PC能力
@@ -134,10 +156,12 @@
       function draw() {//描写
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.beginPath();
+    ctx.drawImage(backgroundimg, 0, 0, 1920, 1080);
     for (let i = 0; i < Object.keys(enemyXY).length; i++) {
       var enemyInfo = enemyXY[i]
     //  console.log(enemyInfo[0])
-    ctx.drawImage(enemyChara, enemyInfo[0], enemyInfo[1], enemySize, enemySize);
+      enemyChara.src = enemyInfo[2].rl
+    ctx.drawImage(enemyChara, enemyInfo[0], enemyInfo[1], enemySizeX, enemySizeY);
     }  
     ctx.drawImage(chara, x, y, charaSizeX, charaSizeY);
   //体力バー
@@ -146,8 +170,8 @@ if(hp > 0){    ctx.fillStyle = "red";
     ctx.fillStyle = "blue";
     var hpbar = hp / maxHp
     ctx.fillRect(x, y + charaSizeY + 10, charaSizeX *  hpbar, 10);}
-//    ctx.font = "48px serif";
-//    ctx.strokeText(`HP:${hp}`, 10, 50);
+    ctx.font = "48px serif";
+    ctx.strokeText(`timer:${timer}スタミナ:${mp}`, 10, 50);
     
     ctx.closePath();
     if(hp < 0)return
@@ -174,6 +198,11 @@ document.addEventListener('keydown', event => {
         xStop = false;
         dx = 1.5;
         hanten = 1;
+    }
+    if (event.code === 'Space') {
+      if(mp < 30)return
+      skill();
+      mp = 0;
     }
 });
 document.addEventListener('keyup', event => {
