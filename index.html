@@ -28,6 +28,8 @@
     <canvas id="myCanvas" width="1920" height="1080" ></canvas>
 
     <script>
+      //ログ
+      console.log('%c何見てんだよ','color:blue; font-size:10em','by:siyakuna')
       // JavaScript のコードはここ
     const canvas = document.getElementById("myCanvas");
     const ctx = canvas.getContext("2d");
@@ -172,7 +174,6 @@
         var enemyInfo = enemyXY[potionDrop];
         var koukazikann = 5;
         potionXY.push([x, y, enemyInfo[0], enemyInfo[1], koukazikann, 500]);
-        console.log('ok')
       }}
     }
     function potionkyodou(){
@@ -207,7 +208,6 @@
         var enemyInfo = enemyXY[ei];
         if((enemyInfo[0] < areaInfo[0] + 80)&&(enemyInfo[1] < areaInfo[1] + 80)){//左上から
         if((enemyInfo[0] + enemySizeX > areaInfo[0])&&(enemyInfo[1] + enemySizeY > areaInfo[1])){//右下から
-          console.log('当たった')
        enemyInfo[2].hp += -2;
         }
       }
@@ -215,7 +215,7 @@
         }
     }
     function  potionDamage(px,  py){//ポーションのエリア生成
-      poisonAreaXY.push([px, py, 4])
+      poisonAreaXY.push([px, py, 8])
     }
     function skill(){
       if(selctChara = "antaresu"){
@@ -276,7 +276,6 @@ if(hp > 0){    ctx.fillStyle = "red";
       var enemyInfo = enemyXY[i];
     if(enemyInfo[2].hp < 0){
       enemyXY.splice(i, 1);
-      console.log('死亡')
       }}
 }
 document.addEventListener('keydown', event => {
