@@ -36,8 +36,11 @@
     const enemyCharaL = new Image();
     const backgroundimg = new Image();
     const potion = new Image();
+    const potionArea = new Image();
+    potion.src = "potion.png"
     backgroundimg.src = "haikei.png"
     chara.src = "antaresu.png"
+    potionArea.src = "poisonArea.png"
     let selctChara = "antaresu";//初期キャラ
     let x = 900;
     let y = 500;
@@ -53,6 +56,10 @@
     let enemySizeX = 50;
     let enemySizeY =  110;
     let weapon = [];
+    let poisonAreaXY = [];
+    let potionMaxCoolTime = 700;
+    let potionCoolTime = 700;
+    var rota = 0;
     var maxHp = 1;
     var hp = 1;
     var stopEnemy = false;
@@ -88,8 +95,6 @@
       y = 969;
       dy = 0;
     }
-
-
     x += dx;
     y += dy;
     if(yStop) dy = dy * dyRemove;
@@ -98,12 +103,17 @@
     if(Ftimer >= 100){
       Ftimer = 0
       timer++;
-      enemy(1);
+      if(timer % 3 === 0 )enemy(2);
       if(mp < 30)mp++;
-    }else{
+    }else{//マイフレーム処理
       Ftimer++;
+      potionCoolTime += -1
     }
 
+    //武器処理
+    potionkyodou()
+    //武器発動
+    weaponSyori()
     for (let i = 0; i < Object.keys(enemyXY).length; i++) {//敵の動き
       var enemyInfo = enemyXY[i];
       var eDx = x - enemyInfo[0];
@@ -132,8 +142,9 @@
       }
       //pcとの衝突判定
       if((enemyInfo[0] < x + charaSizeX)&&(enemyInfo[1] < y + charaSizeY)){//左上から
-        if((enemyInfo[0] + enemySizeX > x)&&(enemyInfo[1] + enemySizeY > y))//右下から
-        hp += -1;
+        if((enemyInfo[0] + enemySizeX > x)&&(enemyInfo[1] + enemySizeY > y)){//右下から
+          hp += -1;
+        }
       }
     }
     stopEnemy = false;
@@ -141,10 +152,10 @@
     function enemy(n){//敵配置
       for(let i = 0; i < n; i++){
         var hen = Math.floor(Math.random() * 3)
-      if(hen === 0)enemyXY.push([-10, Math.floor(Math.random() * 910) + 170, {HP: 10, boost: 1,count: 0,rl: "r"}])//左
-      if(hen === 1)enemyXY.push([1930, Math.floor(Math.random() * 910) + 170, {HP: 10, boost: 1,count: 0,rl: "r"}])//右
+      if(hen === 0)enemyXY.push([-10, Math.floor(Math.random() * 910) + 170, {hp: 100, boost: 1,count: 0,rl: "r"}])//左
+      if(hen === 1)enemyXY.push([1930, Math.floor(Math.random() * 910) + 170, {hp: 100, boost: 1,count: 0,rl: "r"}])//右
 //      if(hen === 2)enemyXY.push([Math.floor(Math.random() * 1920), -10, {HP: 10, boost: 1,count: 0}])//上
-      if(hen === 2)enemyXY.push([Math.floor(Math.random() * 1920), 1090, {HP: 10, boost: 1,count: 0,rl: "r"}])//下
+      if(hen === 2)enemyXY.push([Math.floor(Math.random() * 1920), 1090, {hp: 100, boost: 1,count: 0,rl: "r"}])//下
       }
     }
 //PC能力
@@ -155,9 +166,56 @@
     }
     function weaponSyori(){
       if(weapon.includes('potion')){
-        potionXY.push([x, y]);
+        if(potionCoolTime <= 0){
+      potionCoolTime = potionMaxCoolTime;
+        var potionDrop = Math.floor(Math.random() * Object.keys(enemyXY).length)
+        var enemyInfo = enemyXY[potionDrop];
+        var koukazikann = 5;
+        potionXY.push([x, y, enemyInfo[0], enemyInfo[1], koukazikann, 500]);
         console.log('ok')
+      }}
+    }
+    function potionkyodou(){
+      for (let i = 0; i < Object.keys(potionXY).length; i++) {
+      var potionInfo = potionXY[i]
+      var eDx =  potionInfo[2] - potionInfo[0];
+      var eDy =  potionInfo[3] - potionInfo[1];
+      var s = 8;//スピード
+      var d = Math.sqrt((potionInfo[2] - potionInfo[0]) ** 2 + (potionInfo[3] - potionInfo[1]) ** 2);
+      var t = d / s;
+      var vx = eDx / t;
+      var vy = eDy / t;
+      potionInfo[0] += vx;
+      potionInfo[1] += vy;
+      if(potionInfo[5] = 500){
+        potionInfo[5] = t;
+      }else{
+        potionInfo[5] += -1;
       }
+      if(potionInfo[5] < 1){
+        potionDamage(potionInfo[0], potionInfo[1])
+        potionXY.splice(i, 1);
+      }
+    }
+    for (let i = 0; i < Object.keys(poisonAreaXY).length; i++) {//ダージエリア処理
+      var areaInfo = poisonAreaXY[i];
+      if(Ftimer === 0){
+        areaInfo[2] += -1;
+      }
+      if(areaInfo[2] <= 0)poisonAreaXY.splice(i, 1)
+        for (let ei = 0; ei < Object.keys(enemyXY).length; ei++) {//敵に触れると
+        var enemyInfo = enemyXY[ei];
+        if((enemyInfo[0] < areaInfo[0] + 80)&&(enemyInfo[1] < areaInfo[1] + 80)){//左上から
+        if((enemyInfo[0] + enemySizeX > areaInfo[0])&&(enemyInfo[1] + enemySizeY > areaInfo[1])){//右下から
+          console.log('当たった')
+       enemyInfo[2].hp += -2;
+        }
+      }
+        }
+        }
+    }
+    function  potionDamage(px,  py){//ポーションのエリア生成
+      poisonAreaXY.push([px, py, 4])
     }
     function skill(){
       if(selctChara = "antaresu"){
@@ -165,21 +223,43 @@
         var enemySizeTime = 5;
       }
     }
+    function weaponDraw(){//武器描写
+      if(weapon.includes('potion')){
+      for (let i = 0; i < Object.keys(potionXY).length; i++) {
+      rota += 0.0005
+      var potionInfo = potionXY[i]
+      ctx.save();
+      ctx.translate(potionInfo[0] + 40, potionInfo[1] + 30);
+      ctx.rotate(180 * rota);
+      ctx.drawImage(potion, 0, 0, 40, 40);
+      ctx.restore();
+    }  
+  }
+    }
 
       function draw() {//描写
+        if(hp < 0)return
+    syori();
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.beginPath();
     ctx.drawImage(backgroundimg, 0, 0, 1920, 1080);
+    for (let i = 0; i < Object.keys(poisonAreaXY).length; i++) {
+      var areaInfo = poisonAreaXY[i];
+      ctx.drawImage(potionArea, areaInfo[0], areaInfo[1], 80, 80);
+    }
     for (let i = 0; i < Object.keys(enemyXY).length; i++) {
       var enemyInfo = enemyXY[i]
     //  console.log(enemyInfo[0])
+    ctx.font = "20px serif";
     if(enemyInfo[2].rl === "r"){
       ctx.drawImage(enemyCharaR, enemyInfo[0], enemyInfo[1], enemySizeX, enemySizeY);
     }else{
       ctx.drawImage(enemyCharaL, enemyInfo[0], enemyInfo[1], enemySizeX, enemySizeY);
     }
+//    ctx.strokeText(`HP:${enemyInfo[2].hp}`, enemyInfo[0], enemyInfo[1]);//敵体力表示
     }  
     ctx.drawImage(chara, x, y, charaSizeX, charaSizeY);
+    weaponDraw()
   //体力バー
 if(hp > 0){    ctx.fillStyle = "red";
     ctx.fillRect(x, y + charaSizeY + 10, charaSizeX, 10)
@@ -190,8 +270,14 @@ if(hp > 0){    ctx.fillStyle = "red";
     ctx.strokeText(`timer:${timer}スタミナ:${mp}`, 10, 50);
     
     ctx.closePath();
-    if(hp < 0)return
-    syori();
+
+
+    for (let i = 0; i < Object.keys(enemyXY).length; i++) {//敵の死亡
+      var enemyInfo = enemyXY[i];
+    if(enemyInfo[2].hp < 0){
+      enemyXY.splice(i, 1);
+      console.log('死亡')
+      }}
 }
 document.addEventListener('keydown', event => {
   if(hp < 0)return
