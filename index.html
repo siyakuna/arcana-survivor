@@ -109,7 +109,7 @@ function charaOk(){
   if(selctChara === "antaresu"){//キャラ選択結果アンタレス
         charaL.src = "antaresu-l.png";
         charaR.src = "antaresu.png";
-        maxHp = 500;
+        maxHp = 450;
         speed = 0.8
         hp = maxHp;
          charaSizeX = 48;
@@ -118,11 +118,29 @@ function charaOk(){
       if(selctChara === "enma"){//キャラ選択結果閻魔
         charaL.src = "enma-l.png";
         charaR.src = "enma-r.png";
-        maxHp = 700;
+        maxHp = 850;
         speed = 1.2
         hp = maxHp;
          charaSizeX = 66;
          charaSizeY = 160;
+      }
+      if(selctChara === "suuzan"){//キャラ選択結果スーザン
+        charaL.src = "suuzan-l.png";
+        charaR.src = "suuzan-r.png";
+        maxHp = 700;
+        speed = 0.6
+        hp = maxHp;
+         charaSizeX = 60;
+         charaSizeY = 170;
+      }
+      if(selctChara === "tsukuyomi"){//キャラ選択結果スーザン
+        charaL.src = "tsukuyomi-l.png";
+        charaR.src = "tsukuyomi-r.png";
+        maxHp = 600;
+        speed = 1.25
+        hp = maxHp;
+         charaSizeX = 57;
+         charaSizeY = 130;
       }
       OneSkil()
 }
@@ -399,26 +417,37 @@ function charaOk(){
     function LvUpDraw(){//レベルアップ画面 描写&処理
       ctx.drawImage(lvSelect, 448, 220, 1024, 640)
       ctx.restore();
-      LvUpSeen = false;//一時的に
+
     }
     function menu(){//メニュー画面の処理
       ctx.fillStyle = "black";
       ctx.fillRect(0, 0, 1920, 1080);
+      ctx.font = "30px serif";
+      ctx.fillStyle = "#ffffff";
+      ctx.fillText(`[移動:WASD] [決定/スキル:SPACE]`, 0, 25);
 
       ctx.drawImage(scA, 1500, 214, 160, 366)
       ctx.drawImage(scE, 1000, 30, 240, 550)
       ctx.drawImage(scS, 500, 40, 200, 540 )
       ctx.drawImage(scT, 0, 122, 200, 458 )
-      ctx.font = "20px serif";
-      ctx.fillStyle = "#ffffff";
+      ctx.font = "40px serif";
       ctx.fillText(`アンタレス`, 1500, 600);
       ctx.fillText(`閻魔`, 1000, 600);
+      ctx.fillText(`スーザン・ブラックアイ`, 500, 600);
+      ctx.fillText(`月詠`, 0, 600);
+      ctx.font = "20px serif";
       ctx.fillText(`初期武器:フッ化水素酸`, 1500, 700);
       ctx.fillText(`スキル:<ヒプノーシス>`, 1500, 750);
       ctx.fillText(`メモ:全体的にステータスが低いです`, 1500, 800);
       ctx.fillText(`初期武器:クソデカハンマー`, 1000, 700);
       ctx.fillText(`スキル:一騎当千`, 1000, 750);
       ctx.fillText(`メモ:全体的にステータスが高いです`, 1000, 800);
+      ctx.fillText(`初期武器:未実装`, 500, 700);
+      ctx.fillText(`スキル:未実装`, 500, 750);
+      ctx.fillText(`メモ:体力が高いです`, 500, 800);
+      ctx.fillText(`初期武器:未実装`, 0, 700);
+      ctx.fillText(`スキル:未実装`, 0, 750);
+      ctx.fillText(`メモ:素早さが高いです`, 0, 800);
       //okボタン
       for (let i = 0; i < Object.keys(buttonS).length; i++) {
         var btnInfo = buttonS[i];
@@ -518,35 +547,31 @@ document.addEventListener('keydown', event => {
       }
     }
     if (event.code === 'KeyD') {
-      for (let i = 0; i < Object.keys(buttonS).length; i++) {
+      for (let i = 0; i < Object.keys(buttonS).length; i++) {//メニュー
         var btnInfo = buttonS[i]
         if(btnInfo[3]){
           btnInfo[3] = false;
           if(btnInfo[2] === "tsukuyomi"){
             buttonS[1][3] = true;
-            console.log(buttonS[1][3])
             return;
           }
           if(btnInfo[2] === "suuzan"){
             buttonS[2][3] = true;
-            console.log(buttonS[2][3])
             return;
           }
           if(btnInfo[2] === "enma"){
             buttonS[3][3] = true;
-            console.log(buttonS[3][3])
             return;
           }
           if(btnInfo[2] === "antaresu"){
             buttonS[0][3] = true;
-            console.log(buttonS[0][3])
             return;
           }
         }
       }
     }
 
-    if (event.code === 'Space') {
+    if (event.code === 'Space') {//キャラ決定
       for (let i = 0; i < Object.keys(buttonS).length; i++) {
         var btnInfo = buttonS[i]
         if(btnInfo[3]){
