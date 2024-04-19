@@ -21,7 +21,7 @@
   </head>
   <head prefix="og: https://ogp.me/ns#">
     <meta property="og:title" content="アルカナサバイバー" />
-    <meta property="og:description" content="PCでできるブラウザゲームになったぞ！" />
+    <meta property="og:description" content="かいまほ現行未通過NG‼️我らがアルカナメンバーがPCでできるブラウザゲームに登場⁉️" />
     <meta property="og:image" content="" />
 </head>
   <body>
@@ -33,17 +33,36 @@
       // JavaScript のコードはここ
     const canvas = document.getElementById("myCanvas");
     const ctx = canvas.getContext("2d");
-    const chara = new Image();
+    const charaL = new Image();
+    const charaR = new Image();
     const enemyCharaR = new Image();
     const enemyCharaL = new Image();
     const backgroundimg = new Image();
     const potion = new Image();
     const potionArea = new Image();
+    const exp = new Image();
+    const lvSelect = new Image();
+    const hanmaimg = new Image();
+    let scA = new Image();
+    let scE = new Image();
+    let scS = new Image();
+    let scT = new Image();
+    const butnimg = new Image();
+    butnimg.src = "charaSelectButton.png"
+    scA.src = "antaresu.png" 
+    scE.src = "enma-r.png" 
+    scS.src = "suuzan-r.png" 
+    scT.src = "tsukuyomi-r.png" 
+    hanmaimg.src = "hanma-.png"
     potion.src = "potion.png"
     backgroundimg.src = "haikei.png"
-    chara.src = "antaresu.png"
     potionArea.src = "poisonArea.png"
+    exp.src = "exp.png"
+    lvSelect.src  = "lvSelect.png"
     let selctChara = "antaresu";//初期キャラ
+    let charaLR = "r"
+    var menuScene = true;
+    var buttonS = [[0, 900, "tsukuyomi", true],[500, 900, "suuzan", false],[1000, 900, "enma",false],[1500, 900, "antaresu",false]]
     let x = 900;
     let y = 500;
     let dx = 0;
@@ -55,29 +74,58 @@
     var hanten = 1;
     let enemyXY = [];
     let potionXY = [];
+    let hanmaXY = [];
+    let hanmaMaxCoolTime = 400;
+    let hanmaCoolTime = 10;
+    let itemXY = [];
     let enemySizeX = 50;
     let enemySizeY =  110;
     let weapon = [];
     let poisonAreaXY = [];
     let potionMaxCoolTime = 700;
-    let potionCoolTime = 700;
+    let potionCoolTime = 10;
+    var itemSu = 30;
     var rota = 0;
     var maxHp = 1;
     var hp = 1;
     var stopEnemy = false;
+    var reWeaponCooltime = 1;
+    var enmaSkillTim = 0;
     var timer = 0;
     var Ftimer = 0;
     var mp = 30;
+    var speed = 1;
+    var maxExp = 30;
+    var PlExp = 0;
+    var Lv = 0;
+    var reExp = 0;
+    var LvUpSeen = false;
+    var charaSizeX = 48;
+        var charaSizeY = 110;
+
     enemyCharaR.src = "enemy-r.png"
     enemyCharaL.src = "enemy-l.png"
-      if(selctChara = "antaresu"){//キャラ選択結果
-        chara.src = "antaresu.png";
+function charaOk(){
+  if(selctChara === "antaresu"){//キャラ選択結果アンタレス
+        charaL.src = "antaresu-l.png";
+        charaR.src = "antaresu.png";
         maxHp = 500;
+        speed = 0.8
         hp = maxHp;
-        var charaSizeX = 48;
-        var charaSizeY = 110;
+         charaSizeX = 48;
+         charaSizeY = 110;
+      }
+      if(selctChara === "enma"){//キャラ選択結果閻魔
+        charaL.src = "enma-l.png";
+        charaR.src = "enma-r.png";
+        maxHp = 700;
+        speed = 1.2
+        hp = maxHp;
+         charaSizeX = 66;
+         charaSizeY = 160;
       }
       OneSkil()
+}
 
     function syori() {
           //枠の判定
@@ -97,8 +145,8 @@
       y = 969;
       dy = 0;
     }
-    x += dx;
-    y += dy;
+    x += dx * speed;
+    y += dy * speed;
     if(yStop) dy = dy * dyRemove;
     if(xStop) dx = dx * dxRemove;
     
@@ -107,15 +155,23 @@
       timer++;
       if(timer % 3 === 0 )enemy(2);
       if(mp < 30)mp++;
+      if(enmaSkillTim > 0)enmaSkillTim += -1
     }else{//マイフレーム処理
       Ftimer++;
-      potionCoolTime += -1
-    }
+      if(enmaSkillTim === 0)reWeaponCooltime = 1;
+      potionCoolTime += -1 * reWeaponCooltime;
+      hanmaCoolTime += -1 * reWeaponCooltime;
+    } 
 
     //武器処理
     potionkyodou()
+    hanmakyodou()
     //武器発動
     weaponSyori()
+    //アイテム獲得
+    getExp()
+    lvup()
+
     for (let i = 0; i < Object.keys(enemyXY).length; i++) {//敵の動き
       var enemyInfo = enemyXY[i];
       var eDx = x - enemyInfo[0];
@@ -150,7 +206,47 @@
       }
     }
     stopEnemy = false;
+    }//処理終わり
+    function itemDrop(itemK, Sx, Sy){
+      if(itemK === "exp"){
+        itemXY.push([Sx, Sy, "exp"])
+      }
     }
+    function getExp(){//アイテム獲得
+      for (let i = 0; i < Object.keys(itemXY).length; i++){
+        var itemInfo = itemXY[i];
+        if((itemInfo[0] < x + itemSu + charaSizeX)&&(itemInfo[1] < y + itemSu + charaSizeY)){//吸い込み範囲
+        if((itemInfo[0] + 30 + itemSu > x)&&(itemInfo[1] + 30 + itemSu > y)){
+        var eDx = x - itemInfo[0];
+        var eDy = y - itemInfo[1];
+        var s = 5; //スピード
+        var d = Math.sqrt((x - itemInfo[0]) ** 2 + (y - itemInfo[1]) ** 2);
+        var t = d / s;
+        var vx = eDx / t;
+        var vy = eDy / t;
+        itemInfo[0] += vx;
+        itemInfo[1] += vy;
+        }}
+
+        if((itemInfo[0] < x + charaSizeX)&&(itemInfo[1] < y + charaSizeY)){//左上から
+        if((itemInfo[0] + 30 > x)&&(itemInfo[1] + 30 > y)){//右下から
+          if(itemInfo[2] === "exp") {//経験値獲得
+            PlExp += 10
+            itemXY.splice(i, 1);
+          }
+        }
+      }
+      }
+    }
+   function lvup(){//レベルアップ
+    if(PlExp >= maxExp){
+      reExp = PlExp - maxExp;
+      Lv++
+      maxExp = maxExp * 1.5
+      PlExp = reExp;
+      LvUpSeen = true;
+    }
+   }
     function enemy(n){//敵配置
       for(let i = 0; i < n; i++){
         var hen = Math.floor(Math.random() * 3)
@@ -160,14 +256,30 @@
       if(hen === 2)enemyXY.push([Math.floor(Math.random() * 1920), 1090, {hp: 100, boost: 1,count: 0,rl: "r"}])//下
       }
     }
+
 //PC能力
     function OneSkil(){
-      if(selctChara = "antaresu"){
-        weapon.push('potion');
+      if(selctChara === "antaresu"){
+        weapon.push('potion'); //ポーション
+        console.log("アンタレス")
+      }
+      if(selctChara === "enma"){
+        weapon.push('hanma-');
+        console.log("閻魔")
       }
     }
     function weaponSyori(){
-      if(weapon.includes('potion')){
+      if(weapon.includes('hanma-')){//クソデカハンマー
+        if(hanmaCoolTime <= 0){
+          hanmaCoolTime = hanmaMaxCoolTime;
+          var hen = Math.floor(Math.random() * 4)
+          if(hen === 0)hanmaXY.push([x, y, -10, Math.floor(Math.random() * 910) + 170, 500]);
+          if(hen === 1)hanmaXY.push([x, y, 1930, Math.floor(Math.random() * 910) + 170, 500]);
+          if(hen === 2)hanmaXY.push([x, y, Math.floor(Math.random() * 1920), 170, 500]);
+          if(hen === 3)hanmaXY.push([x, y, Math.floor(Math.random() * 1920), 1090, 500]);
+        }
+      }
+      if(weapon.includes('potion')){//ポーション
         if(potionCoolTime <= 0){
       potionCoolTime = potionMaxCoolTime;
         var potionDrop = Math.floor(Math.random() * Object.keys(enemyXY).length)
@@ -214,31 +326,120 @@
         }
         }
     }
-    function  potionDamage(px,  py){//ポーションのエリア生成
+    function potionDamage(px,  py){//ポーションのエリア生成
       poisonAreaXY.push([px, py, 8])
     }
+    function hanmakyodou(){
+      for (let i = 0; i < Object.keys(hanmaXY).length; i++) {
+      var hanmaInfo = hanmaXY[i];
+      var eDx = hanmaInfo[2] - hanmaInfo[0];
+      var eDy =  hanmaInfo[3] - hanmaInfo[1];
+      var s = 8;//スピード
+      var d = Math.sqrt((hanmaInfo[2] - hanmaInfo[0]) ** 2 + (hanmaInfo[3] - hanmaInfo[1]) ** 2);
+      var t = d / s;
+      var vx = eDx / t;
+      var vy = eDy / t;
+      hanmaInfo[0] += vx;
+      hanmaInfo[1] += vy;
+
+      for (let ei = 0; ei < Object.keys(enemyXY).length; ei++) {//敵に触れると
+        var enemyInfo = enemyXY[ei];
+        if((enemyInfo[0] < hanmaInfo[0] + 80)&&(enemyInfo[1] < hanmaInfo[1] + 80)){//左上から
+        if((enemyInfo[0] + enemySizeX > hanmaInfo[0])&&(enemyInfo[1] + enemySizeY > hanmaInfo[1])){//右下から
+       enemyInfo[2].hp += -8;
+       enemyInfo[2].boost += -15;
+        }
+      }
+        }
+
+      if(hanmaInfo[4] = 500){
+        hanmaInfo[4] = t;
+      }else{
+        hanmaInfo[4] += -1;
+      }
+      if(hanmaInfo[4] < 1){
+        hanmaXY.splice(i, 1);
+      }
+    }
+    }
     function skill(){
-      if(selctChara = "antaresu"){
+      if(selctChara === "antaresu"){
         stopEnemy = true;
         var enemySizeTime = 5;
+        hp += maxHp/5
+      }
+      if(selctChara === "enma"){
+        reWeaponCooltime = 20;
+        enmaSkillTim = 5;
       }
     }
     function weaponDraw(){//武器描写
+      rota += 0.0005
       if(weapon.includes('potion')){
       for (let i = 0; i < Object.keys(potionXY).length; i++) {
-      rota += 0.0005
       var potionInfo = potionXY[i]
       ctx.save();
       ctx.translate(potionInfo[0] + 40, potionInfo[1] + 30);
       ctx.rotate(180 * rota);
-      ctx.drawImage(potion, 0, 0, 40, 40);
+      ctx.drawImage(potion, -40, -30, 40, 40);
       ctx.restore();
     }  
   }
+  if(weapon.includes('hanma-')){
+    for (let i = 0; i < Object.keys(hanmaXY).length; i++) {
+      var hanmaInfo = hanmaXY[i];
+      ctx.save();
+      ctx.translate(hanmaInfo[0] + 50, hanmaInfo[1] + 50);
+      ctx.rotate(180 * rota);
+      ctx.drawImage(hanmaimg, -50, -50, 100, 100)
+      ctx.restore();
+    }
+  }
+    }
+    function LvUpDraw(){//レベルアップ画面 描写&処理
+      ctx.drawImage(lvSelect, 448, 220, 1024, 640)
+      ctx.restore();
+      LvUpSeen = false;//一時的に
+    }
+    function menu(){//メニュー画面の処理
+      ctx.fillStyle = "black";
+      ctx.fillRect(0, 0, 1920, 1080);
+
+      ctx.drawImage(scA, 1500, 214, 160, 366)
+      ctx.drawImage(scE, 1000, 30, 240, 550)
+      ctx.drawImage(scS, 500, 40, 200, 540 )
+      ctx.drawImage(scT, 0, 122, 200, 458 )
+      ctx.font = "20px serif";
+      ctx.fillStyle = "#ffffff";
+      ctx.fillText(`アンタレス`, 1500, 600);
+      ctx.fillText(`閻魔`, 1000, 600);
+      ctx.fillText(`初期武器:フッ化水素酸`, 1500, 700);
+      ctx.fillText(`スキル:<ヒプノーシス>`, 1500, 750);
+      ctx.fillText(`メモ:全体的にステータスが低いです`, 1500, 800);
+      ctx.fillText(`初期武器:クソデカハンマー`, 1000, 700);
+      ctx.fillText(`スキル:一騎当千`, 1000, 750);
+      ctx.fillText(`メモ:全体的にステータスが高いです`, 1000, 800);
+      //okボタン
+      for (let i = 0; i < Object.keys(buttonS).length; i++) {
+        var btnInfo = buttonS[i];
+        if(btnInfo[3]){
+          ctx.drawImage(butnimg, btnInfo[0], btnInfo[1], 200, 100)
+        }
+      }
+
     }
 
       function draw() {//描写
-        if(hp < 0)return
+        if(hp < 0)return;
+        ctx.save();
+        if(LvUpSeen){
+          LvUpDraw()
+          return;
+        }
+        if(menuScene){//メニュー時
+          menu()
+          return;
+        }
     syori();
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.beginPath();
@@ -246,6 +447,10 @@
     for (let i = 0; i < Object.keys(poisonAreaXY).length; i++) {
       var areaInfo = poisonAreaXY[i];
       ctx.drawImage(potionArea, areaInfo[0], areaInfo[1], 80, 80);
+    }
+    for (let i = 0; i < Object.keys(itemXY).length; i++) {//アイテム
+      var itemInfo = itemXY[i];
+      ctx.drawImage(exp, itemInfo[0] + 30, itemInfo[1] + 40, 30, 30);
     }
     for (let i = 0; i < Object.keys(enemyXY).length; i++) {
       var enemyInfo = enemyXY[i]
@@ -258,7 +463,8 @@
     }
 //    ctx.strokeText(`HP:${enemyInfo[2].hp}`, enemyInfo[0], enemyInfo[1]);//敵体力表示
     }  
-    ctx.drawImage(chara, x, y, charaSizeX, charaSizeY);
+    if(charaLR === "r") ctx.drawImage(charaR, x, y, charaSizeX, charaSizeY);
+    if(charaLR === "l") ctx.drawImage(charaL, x, y, charaSizeX, charaSizeY);
     weaponDraw()
   //体力バー
 if(hp > 0){    ctx.fillStyle = "red";
@@ -267,19 +473,90 @@ if(hp > 0){    ctx.fillStyle = "red";
     var hpbar = hp / maxHp
     ctx.fillRect(x, y + charaSizeY + 10, charaSizeX *  hpbar, 10);}
     ctx.font = "48px serif";
-    ctx.strokeText(`timer:${timer}スタミナ:${mp}`, 10, 50);
-    
+    ctx.strokeText(`timer:${timer}スタミナ:${mp}Lv:${Lv}`, 10, 50);
+    //経験値バー
+    ctx.fillStyle = "green";
+    var expBar = PlExp / maxExp;
+    ctx.fillRect(0, 0, 1920 * expBar, 20)
+
     ctx.closePath();
 
 
     for (let i = 0; i < Object.keys(enemyXY).length; i++) {//敵の死亡
       var enemyInfo = enemyXY[i];
     if(enemyInfo[2].hp < 0){
+       var itemRandom = Math.floor(Math.random() * 99) + 1;
+      if(itemRandom <= 50)itemDrop("exp", enemyInfo[0], enemyInfo[1])
       enemyXY.splice(i, 1);
       }}
 }
 document.addEventListener('keydown', event => {
   if(hp < 0)return
+  if(menuScene){//キャラ選択
+    if (event.code === 'KeyA') {
+      for (let i = 0; i < Object.keys(buttonS).length; i++) {
+        var btnInfo = buttonS[i]
+        if(btnInfo[3]){
+          btnInfo[3] = false;
+          if(btnInfo[2] === "tsukuyomi"){
+            buttonS[3][3] = true;
+            return;
+          }
+          if(btnInfo[2] === "suuzan"){
+            buttonS[0][3] = true;
+            return;
+          }
+          if(btnInfo[2] === "enma"){
+            buttonS[1][3] = true;
+            return;
+          }
+          if(btnInfo[2] === "antaresu"){
+            buttonS[2][3] = true;
+            return;
+          }
+        }
+      }
+    }
+    if (event.code === 'KeyD') {
+      for (let i = 0; i < Object.keys(buttonS).length; i++) {
+        var btnInfo = buttonS[i]
+        if(btnInfo[3]){
+          btnInfo[3] = false;
+          if(btnInfo[2] === "tsukuyomi"){
+            buttonS[1][3] = true;
+            console.log(buttonS[1][3])
+            return;
+          }
+          if(btnInfo[2] === "suuzan"){
+            buttonS[2][3] = true;
+            console.log(buttonS[2][3])
+            return;
+          }
+          if(btnInfo[2] === "enma"){
+            buttonS[3][3] = true;
+            console.log(buttonS[3][3])
+            return;
+          }
+          if(btnInfo[2] === "antaresu"){
+            buttonS[0][3] = true;
+            console.log(buttonS[0][3])
+            return;
+          }
+        }
+      }
+    }
+
+    if (event.code === 'Space') {
+      for (let i = 0; i < Object.keys(buttonS).length; i++) {
+        var btnInfo = buttonS[i]
+        if(btnInfo[3]){
+          selctChara = btnInfo[2]
+          menuScene = false;
+          charaOk()
+          return;
+        }}
+    }
+  }
     if (event.code === 'KeyW') {
         yStop = false;
         dy = -1.5;
@@ -289,13 +566,13 @@ document.addEventListener('keydown', event => {
         dy = 1.5;
     }
     if (event.code === 'KeyA') {
-      chara.src = "antaresu-l.png"
+      charaLR = "l"
         xStop = false;
         dx = -1.5;
         hanten = -1;
     }
     if (event.code === 'KeyD') {
-      chara.src = "antaresu.png"
+      charaLR = "r"
         xStop = false;
         dx = 1.5;
         hanten = 1;
@@ -320,6 +597,8 @@ document.addEventListener('keyup', event => {
         xStop = true
     }
 });
+
+
 enemy(10)
 setInterval(draw, 10);
     </script>
