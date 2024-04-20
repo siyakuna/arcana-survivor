@@ -100,8 +100,9 @@
     var Lv = 0;
     var reExp = 0;
     var LvUpSeen = false;
+    let LvUpSelect = [[700, 350, "none", true], [700, 550, "none", false], [700, 750, "none", false]]
     var charaSizeX = 48;
-        var charaSizeY = 110;
+    var charaSizeY = 110;
 
     enemyCharaR.src = "enemy-r.png"
     enemyCharaL.src = "enemy-l.png"
@@ -285,8 +286,19 @@ function charaOk(){
         weapon.push('hanma-');
         console.log("閻魔")
       }
+      if(selctChara === "suuzan"){
+        weapon.push('none');
+        console.log("スーザン")
+      }
+      if(selctChara === "tsukuyomi"){
+        weapon.push('knife');
+        console.log("月詠")
+      }
     }
     function weaponSyori(){
+      if(weapon.includes('knife')){//ナイフ
+
+      }
       if(weapon.includes('hanma-')){//クソデカハンマー
         if(hanmaCoolTime <= 0){
           hanmaCoolTime = hanmaMaxCoolTime;
@@ -390,6 +402,12 @@ function charaOk(){
         reWeaponCooltime = 20;
         enmaSkillTim = 5;
       }
+      if(selctChara === "suuzan"){
+
+      }
+      if(selctChara === "tsukuyomi"){
+
+      }
     }
     function weaponDraw(){//武器描写
       rota += 0.0005
@@ -416,8 +434,17 @@ function charaOk(){
     }
     function LvUpDraw(){//レベルアップ画面 描写&処理
       ctx.drawImage(lvSelect, 448, 220, 1024, 640)
-      ctx.restore();
+      for (let i = 0; i < Object.keys(LvUpSelect).length; i++) {
+      var lvSInfo = LvUpSelect[i];
+      if(lvSInfo[3]){
+        ctx.drawImage (butnimg, lvSInfo[0] - 200, lvSInfo[1] - 50, 200, 100)
+      }
+      ctx.fillText(lvSInfo[2], lvSInfo[0], lvSInfo[1]);
+    }
 
+
+      ctx.restore();
+//      LvUpSeen = false//一時
     }
     function menu(){//メニュー画面の処理
       ctx.fillStyle = "black";
@@ -603,11 +630,60 @@ document.addEventListener('keydown', event => {
         hanten = 1;
     }
     if (event.code === 'Space') {
-      if(mp < 30)return
+
+      if(mp < 30 && !LvUpSeen)return
       skill();
       mp = 0;
     }
-});
+    if(LvUpSeen){//lvup選択
+      if (event.code === 'Space') {
+      console.log('ok')
+      LvUpSeen = false;
+      return;
+    }
+      if (event.code === 'KeyS') {
+      for (let i = 0; i < Object.keys(LvUpSelect).length; i++) {
+        var btnInfo = LvUpSelect[i]
+        if(btnInfo[3]){
+          btnInfo[3] = false;
+          if(i === 0){
+            LvUpSelect[1][3] = true;
+            return;
+          }
+          if(i === 1){
+            LvUpSelect[2][3] = true;
+            return;
+          }
+          if(i === 2){
+            LvUpSelect[0][3] = true;
+            return;
+          }
+        }
+      }
+    }
+    if (event.code === 'KeyW') {
+      for (let i = 0; i < Object.keys(LvUpSelect).length; i++) {
+        var btnInfo = LvUpSelect[i]
+        if(btnInfo[3]){
+          btnInfo[3] = false;
+          if(i === 0){
+            LvUpSelect[2][3] = true;
+            return;
+          }
+          if(i === 1){
+            LvUpSelect[0][3] = true;
+            return;
+          }
+          if(i === 2){
+            LvUpSelect[1][3] = true;
+            return;
+          }
+        }
+      }
+    }
+}
+  });
+
 document.addEventListener('keyup', event => {
     if (event.code === 'KeyW') {
         yStop = true
