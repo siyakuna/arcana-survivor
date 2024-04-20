@@ -22,7 +22,7 @@
   <head prefix="og: https://ogp.me/ns#">
     <meta property="og:title" content="アルカナサバイバー" />
     <meta property="og:description" content="かいまほ現行未通過NG‼️我らがアルカナメンバーがPCでできるブラウザゲームに登場⁉️" />
-    <meta property="og:image" content="" />
+    <meta property="og:image" content="ogp-title.png" />
 </head>
   <body>
     <canvas id="myCanvas" width="1920" height="1080" ></canvas>
@@ -78,8 +78,8 @@
     let hanmaMaxCoolTime = 400;
     let hanmaCoolTime = 10;
     let itemXY = [];
-    let enemySizeX = 50;
-    let enemySizeY =  110;
+    let enemySizeX = 60;
+    let enemySizeY =  132;
     let weapon = [];
     let poisonAreaXY = [];
     let potionMaxCoolTime = 700;
@@ -91,6 +91,7 @@
     var stopEnemy = false;
     var reWeaponCooltime = 1;
     var enmaSkillTim = 0;
+    var tsukuyomiSkillTim = 0;
     var timer = 0;
     var Ftimer = 0;
     var mp = 30;
@@ -169,15 +170,16 @@ function charaOk(){
     if(yStop) dy = dy * dyRemove;
     if(xStop) dx = dx * dxRemove;
     
-    if(Ftimer >= 100){
+    if(Ftimer >= 100){//タイマー系
       Ftimer = 0
       timer++;
       if(timer % 3 === 0 )enemy(2);
       if(mp < 30)mp++;
-      if(enmaSkillTim > 0)enmaSkillTim += -1
+      if(enmaSkillTim > 0)enmaSkillTim += -1;
+      if(tsukuyomiSkillTim > 0)tsukuyomiSkillTim += -1;
     }else{//マイフレーム処理
       Ftimer++;
-      if(enmaSkillTim === 0)reWeaponCooltime = 1;
+      if(enmaSkillTim === 0)reWeaponCooltime = 1;//閻魔スキル
       potionCoolTime += -1 * reWeaponCooltime;
       hanmaCoolTime += -1 * reWeaponCooltime;
     } 
