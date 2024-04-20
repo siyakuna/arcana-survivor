@@ -396,7 +396,9 @@ function charaOk(){
       if(selctChara === "antaresu"){
         stopEnemy = true;
         var enemySizeTime = 5;
-        hp += maxHp/5
+        var php = maxHp/5;
+        hp += php
+         if(hp > maxHp)hp = maxHp
       }
       if(selctChara === "enma"){
         reWeaponCooltime = 20;
