@@ -43,6 +43,8 @@
     const exp = new Image();
     const lvSelect = new Image();
     const hanmaimg = new Image();
+    const knifeimg = new Image();
+    const elder = new Image();
     let scA = new Image();
     let scE = new Image();
     let scS = new Image();
@@ -54,7 +56,9 @@
     scS.src = "suuzan-r.png" 
     scT.src = "tsukuyomi-r.png" 
     hanmaimg.src = "hanma-.png"
+    knifeimg.src = "knife.png"
     potion.src = "potion.png"
+    elder.src = ("elder.png")
     backgroundimg.src = "haikei.png"
     potionArea.src = "poisonArea.png"
     exp.src = "exp.png"
@@ -80,6 +84,9 @@
     let itemXY = [];
     let enemySizeX = 60;
     let enemySizeY =  132;
+    let knifeXY =[];
+    let knifeMaxCoolTim = 200
+    let knifeCoolTim = 10;
     let weapon = [];
     let poisonAreaXY = [];
     let potionMaxCoolTime = 700;
@@ -96,12 +103,14 @@
     var Ftimer = 0;
     var mp = 30;
     var speed = 1;
+    var speedBst = 1;
+    var  hpCut = 1
     var maxExp = 30;
     var PlExp = 0;
     var Lv = 0;
     var reExp = 0;
     var LvUpSeen = false;
-    let LvUpSelect = [[700, 350, "none", true], [700, 550, "none", false], [700, 750, "none", false]]
+    let LvUpSelect = [[700, 350, "まだ", true], [700, 550, "実装", false], [700, 750, "してない", false]] 
     var charaSizeX = 48;
     var charaSizeY = 110;
 
@@ -132,10 +141,11 @@ function charaOk(){
         maxHp = 700;
         speed = 0.6
         hp = maxHp;
+        mp = 20
          charaSizeX = 60;
          charaSizeY = 170;
       }
-      if(selctChara === "tsukuyomi"){//キャラ選択結果スーザン
+      if(selctChara === "tsukuyomi"){//キャラ選択結果月詠
         charaL.src = "tsukuyomi-l.png";
         charaR.src = "tsukuyomi-r.png";
         maxHp = 600;
@@ -165,15 +175,19 @@ function charaOk(){
       y = 969;
       dy = 0;
     }
-    x += dx * speed;
-    y += dy * speed;
+    x += dx * speed * speedBst;
+    y += dy * speed * speedBst;
     if(yStop) dy = dy * dyRemove;
     if(xStop) dx = dx * dxRemove;
     
     if(Ftimer >= 100){//タイマー系
       Ftimer = 0
       timer++;
-      if(timer % 3 === 0 )enemy(2);
+      if(timer % 3 === 0 ){
+        enemy(2, 1, 100);
+        if(timer > 60 && timer < 180) enemy(2, 2, 250);
+        if(timer > 180) enemy(4, 4, 300);
+      }
       if(mp < 30)mp++;
       if(enmaSkillTim > 0)enmaSkillTim += -1;
       if(tsukuyomiSkillTim > 0)tsukuyomiSkillTim += -1;
@@ -182,16 +196,21 @@ function charaOk(){
       if(enmaSkillTim === 0)reWeaponCooltime = 1;//閻魔スキル
       potionCoolTime += -1 * reWeaponCooltime;
       hanmaCoolTime += -1 * reWeaponCooltime;
+      knifeCoolTim += -1 * reWeaponCooltime;
     } 
 
     //武器処理
     potionkyodou()
     hanmakyodou()
+    knifekyodou()
     //武器発動
     weaponSyori()
     //アイテム獲得
     getExp()
     lvup()
+    //スキル
+    tsukuyomiSkill()
+    suuzanSkill()
 
     for (let i = 0; i < Object.keys(enemyXY).length; i++) {//敵の動き
       var enemyInfo = enemyXY[i];
@@ -206,8 +225,8 @@ function charaOk(){
         enemyInfo[2].count  = 5 * 100;
         enemyInfo[2].boost  = 0;
       }
-      if(enemyInfo[2].count  < 0){
-        enemyInfo[2].boost  = 1;
+      if(enemyInfo[2].count < 0){
+        enemyInfo[2].boost  =  enemyInfo[2].speed;
       }else{
         enemyInfo[2].count += -1;
         enemyInfo[2].boost  = 0;
@@ -222,7 +241,7 @@ function charaOk(){
       //pcとの衝突判定
       if((enemyInfo[0] < x + charaSizeX)&&(enemyInfo[1] < y + charaSizeY)){//左上から
         if((enemyInfo[0] + enemySizeX > x)&&(enemyInfo[1] + enemySizeY > y)){//右下から
-          hp += -1;
+          hp += -1 * hpCut;
         }
       }
     }
@@ -268,13 +287,14 @@ function charaOk(){
       LvUpSeen = true;
     }
    }
-    function enemy(n){//敵配置
+    function enemy(n, bst, h){//敵配置
       for(let i = 0; i < n; i++){
         var hen = Math.floor(Math.random() * 3)
-      if(hen === 0)enemyXY.push([-10, Math.floor(Math.random() * 910) + 170, {hp: 100, boost: 1,count: 0,rl: "r"}])//左
-      if(hen === 1)enemyXY.push([1930, Math.floor(Math.random() * 910) + 170, {hp: 100, boost: 1,count: 0,rl: "r"}])//右
+        var sp = bst
+      if(hen === 0)enemyXY.push([-10, Math.floor(Math.random() * 910) + 170, {hp: h, boost: 1,count: 0,rl: "r", speed: sp}])//左
+      if(hen === 1)enemyXY.push([1930, Math.floor(Math.random() * 910) + 170, {hp: h, boost: 1,count: 0,rl: "r",speed: sp}])//右
 //      if(hen === 2)enemyXY.push([Math.floor(Math.random() * 1920), -10, {HP: 10, boost: 1,count: 0}])//上
-      if(hen === 2)enemyXY.push([Math.floor(Math.random() * 1920), 1090, {hp: 100, boost: 1,count: 0,rl: "r"}])//下
+      if(hen === 2)enemyXY.push([Math.floor(Math.random() * 1920), 1090, {hp: h, boost: 1,count: 0,rl: "r",speed: sp}])//下
       }
     }
 
@@ -291,6 +311,7 @@ function charaOk(){
       if(selctChara === "suuzan"){
         weapon.push('none');
         console.log("スーザン")
+        mp = 29
       }
       if(selctChara === "tsukuyomi"){
         weapon.push('knife');
@@ -299,7 +320,11 @@ function charaOk(){
     }
     function weaponSyori(){
       if(weapon.includes('knife')){//ナイフ
-
+        if(knifeCoolTim <= 0){
+          knifeCoolTim = knifeMaxCoolTim;
+          console.log('発動')
+          knifeXY.push([x + 100, y + 10, "l", 400],[x - 100, y + 10, "r", 400])
+        }
       }
       if(weapon.includes('hanma-')){//クソデカハンマー
         if(hanmaCoolTime <= 0){
@@ -394,6 +419,23 @@ function charaOk(){
       }
     }
     }
+    function knifekyodou(){
+      for (let i = 0; i < Object.keys(knifeXY).length; i++) {
+      var knifeInfo = knifeXY[i];
+      if(knifeInfo[3] > 0)knifeInfo[3] += -30;
+      for (let ei = 0; ei < Object.keys(enemyXY).length; ei++) {//敵に触れると
+        var enemyInfo = enemyXY[ei];
+        if((enemyInfo[0] < knifeInfo[0] + 80)&&(enemyInfo[1] < knifeInfo[1] + 80)){//左上から
+        if((enemyInfo[0] + enemySizeX > knifeInfo[0])&&(enemyInfo[1] + enemySizeY > knifeInfo[1])){//右下から
+       enemyInfo[2].hp += -20;
+       enemyInfo[2].boost += -10;
+        }
+      }
+        }
+
+      if(knifeInfo[3] <= 0)knifeXY.splice(i, 1);
+    }
+    }
     function skill(){
       if(selctChara === "antaresu"){
         stopEnemy = true;
@@ -404,13 +446,42 @@ function charaOk(){
       }
       if(selctChara === "enma"){
         reWeaponCooltime = 20;
-        enmaSkillTim = 5;
+        enmaSkillTim = 2;
       }
       if(selctChara === "suuzan"){
 
+  if(5 <  Math.floor(Math.random() * 100)) {
+  itemXY.splice(0, Object.keys(itemXY).length) 
+  enemyXY.splice(0, Object.keys(enemyXY).length)  
+  console.log('全破壊')    
+}else{
+  for (let ei = 0; ei < Object.keys(enemyXY).length; ei++) {
+  var enemyInfo = enemyXY[ei];
+  enemyInfo[2].hp = -1;
+  console.log('敵だけ破壊')    
+}
+}
+
       }
       if(selctChara === "tsukuyomi"){
-
+        tsukuyomiSkillTim = 2;
+      }
+    }
+    function tsukuyomiSkill(){//月詠スキル処理
+      if(tsukuyomiSkillTim > 0){
+        speedBst = 2.5
+        hpCut = 0;
+      }else{
+        speedBst = 1
+        hpCut = 1;
+      }
+    }
+    function suuzanSkill(){
+      if(selctChara === "suuzan"){
+        if(mp === 30){
+        mp = 0;
+        skill()
+      }
       }
     }
     function weaponDraw(){//武器描写
@@ -435,6 +506,22 @@ function charaOk(){
       ctx.restore();
     }
   }
+  if(weapon.includes('knife')){
+      for (let i = 0; i < Object.keys(knifeXY).length; i++) {
+      var knifeInfo = knifeXY[i]
+      ctx.save();
+      ctx.translate(knifeInfo[0] + 50, knifeInfo[1] + 50);
+      if(knifeInfo[2] === "l"){
+        knifeInfo[0] += 4;
+        ctx.scale(1, 1);
+      }else{
+        knifeInfo[0] += -4;
+        ctx.scale(-1, 1)
+      }
+      ctx.drawImage(knifeimg, -50, -50, 100, 100);
+      ctx.restore();
+    
+    }}
     }
     function LvUpDraw(){//レベルアップ画面 描写&処理
       ctx.drawImage(lvSelect, 448, 220, 1024, 640)
@@ -469,16 +556,24 @@ function charaOk(){
       ctx.font = "20px serif";
       ctx.fillText(`初期武器:フッ化水素酸`, 1500, 700);
       ctx.fillText(`スキル:<ヒプノーシス>`, 1500, 750);
-      ctx.fillText(`メモ:全体的にステータスが低いです`, 1500, 800);
+      ctx.fillText(`メモ:全体的にステータスが低いです`, 1500, 850);
       ctx.fillText(`初期武器:クソデカハンマー`, 1000, 700);
       ctx.fillText(`スキル:一騎当千`, 1000, 750);
-      ctx.fillText(`メモ:全体的にステータスが高いです`, 1000, 800);
+      ctx.fillText(`メモ:全体的にステータスが高いです`, 1000, 850);
       ctx.fillText(`初期武器:未実装`, 500, 700);
-      ctx.fillText(`スキル:未実装`, 500, 750);
-      ctx.fillText(`メモ:体力が高いです`, 500, 800);
-      ctx.fillText(`初期武器:未実装`, 0, 700);
-      ctx.fillText(`スキル:未実装`, 0, 750);
-      ctx.fillText(`メモ:素早さが高いです`, 0, 800);
+      ctx.fillText(`スキル:魔女の切り札`, 500, 750);
+      ctx.fillText(`メモ:体力が高いです`, 500, 850);
+      ctx.fillText(`初期武器:ナイフ`, 0, 700);
+      ctx.fillText(`スキル:<忍び歩き>`, 0, 750);
+      ctx.fillText(`メモ:素早さが高いです`, 0, 850);
+      ctx.font = "15px serif";
+      ctx.fillStyle = "red";
+      ctx.fillText(`スキル発動時、画面に映る全敵を一時的に動けなくし`, 1500, 765);
+      ctx.fillText(`自身のHPを少量回復する`, 1500, 780);
+      ctx.fillText(`スキル発動後数秒間、全武器のクールタイムが大幅に減る`, 1000, 765);
+      ctx.fillText(`スキル発動時、画面に映る全てを消し去る。`, 500, 765);
+      ctx.fillText(`5%の確率で敵のみ消し去る。このスキルは強制発動する。`, 500, 780);
+      ctx.fillText(`スキル発動後数秒間移、動速度が上がりダメージを受けなくなる`, 0, 765);
       //okボタン
       for (let i = 0; i < Object.keys(buttonS).length; i++) {
         var btnInfo = buttonS[i];
@@ -526,6 +621,9 @@ function charaOk(){
     if(charaLR === "r") ctx.drawImage(charaR, x, y, charaSizeX, charaSizeY);
     if(charaLR === "l") ctx.drawImage(charaL, x, y, charaSizeX, charaSizeY);
     weaponDraw()
+    if(selctChara === "suuzan" && mp === 0){
+      ctx.drawImage(elder, 460, 0, 1000, 1000,)
+    }
   //体力バー
 if(hp > 0){    ctx.fillStyle = "red";
     ctx.fillRect(x, y + charaSizeY + 10, charaSizeX, 10)
@@ -635,16 +733,18 @@ document.addEventListener('keydown', event => {
     }
     if (event.code === 'Space') {
 
-      if(mp < 30 && !LvUpSeen)return
-      skill();
-      mp = 0;
-    }
-    if(LvUpSeen){//lvup選択
-      if (event.code === 'Space') {
-      console.log('ok')
+      if(mp < 30 && LvUpSeen){
+        console.log('ok')
       LvUpSeen = false;
       return;
+      }else{
+
+      skill();
+      mp = 0;
+      }
     }
+    if(LvUpSeen){//lvup選択
+
       if (event.code === 'KeyS') {
       for (let i = 0; i < Object.keys(LvUpSelect).length; i++) {
         var btnInfo = LvUpSelect[i]
@@ -704,7 +804,7 @@ document.addEventListener('keyup', event => {
 });
 
 
-enemy(10)
+enemy(10, 1, 100)
 setInterval(draw, 10);
     </script>
   </body>
