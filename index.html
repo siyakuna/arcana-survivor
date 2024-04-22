@@ -798,9 +798,10 @@ document.addEventListener('keydown', event => {
       LvUpSeen = false;
       return;
       }else{
-
-      skill();
+        if(mp === 30){
+          skill();
       mp = 0;
+        }
       }
     }
     if(LvUpSeen){//lvup選択
