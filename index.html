@@ -22,7 +22,7 @@
   <head prefix="og: https://ogp.me/ns#">
     <meta property="og:title" content="アルカナサバイバー" />
     <meta property="og:description" content="かいまほ現行未通過NG‼️我らがアルカナメンバーがPCでできるブラウザゲームに登場⁉️" />
-    <meta property="og:image" content="ogp-title.png" />
+    <meta property="og:image" content="https://media.discordapp.net/attachments/782896125924474900/1231958784193331310/ogp-title.png?ex=6638da06&is=66266506&hm=e369cc7b482060a84bee5a5a1de1f585f80dcaefd7d15f688a641b6a3f55a0dd&=&format=webp&quality=lossless&width=1324&height=1324" />
 </head>
   <body>
     <canvas id="myCanvas" width="1920" height="1080" ></canvas>
@@ -44,6 +44,7 @@
     const lvSelect = new Image();
     const hanmaimg = new Image();
     const knifeimg = new Image();
+    const pcimg = new Image();
     const elder = new Image();
     let scA = new Image();
     let scE = new Image();
@@ -58,6 +59,7 @@
     hanmaimg.src = "hanma-.png"
     knifeimg.src = "knife.png"
     potion.src = "potion.png"
+    pcimg.src = "pc.png"
     elder.src = ("elder.png")
     backgroundimg.src = "haikei.png"
     potionArea.src = "poisonArea.png"
@@ -89,14 +91,18 @@
     let knifeCoolTim = 10;
     let weapon = [];
     let poisonAreaXY = [];
-    let potionMaxCoolTime = 700;
+    let potionMaxCoolTime = 400;
     let potionCoolTime = 10;
+    let pcXY = [];
+    let pcMaxCoolTim = 200;
+    let pcCoolTim = 10;
     var itemSu = 30;
     var rota = 0;
     var maxHp = 1;
     var hp = 1;
     var stopEnemy = false;
     var reWeaponCooltime = 1;
+    var weaponCooltime = 1;
     var enmaSkillTim = 0;
     var tsukuyomiSkillTim = 0;
     var timer = 0;
@@ -110,7 +116,7 @@
     var Lv = 0;
     var reExp = 0;
     var LvUpSeen = false;
-    let LvUpSelect = [[700, 350, "まだ", true], [700, 550, "実装", false], [700, 750, "してない", false]] 
+    let LvUpSelect = [[700, 350, "スピード増加", true], [700, 550, "最大体力増加", false], [700, 750, "武器クールタイム", false]] 
     var charaSizeX = 48;
     var charaSizeY = 110;
 
@@ -186,22 +192,24 @@ function charaOk(){
       if(timer % 3 === 0 ){
         enemy(2, 1, 100);
         if(timer > 60 && timer < 180) enemy(2, 2, 250);
-        if(timer > 180) enemy(4, 4, 300);
+        if(timer > 180) enemy(2, 4, 300);
       }
       if(mp < 30)mp++;
       if(enmaSkillTim > 0)enmaSkillTim += -1;
       if(tsukuyomiSkillTim > 0)tsukuyomiSkillTim += -1;
     }else{//マイフレーム処理
       Ftimer++;
-      if(enmaSkillTim === 0)reWeaponCooltime = 1;//閻魔スキル
+      if(enmaSkillTim === 0)reWeaponCooltime = 1 * weaponCooltime;//閻魔スキル
       potionCoolTime += -1 * reWeaponCooltime;
       hanmaCoolTime += -1 * reWeaponCooltime;
       knifeCoolTim += -1 * reWeaponCooltime;
+      pcCoolTim += -1 *reWeaponCooltime;
     } 
 
     //武器処理
     potionkyodou()
     hanmakyodou()
+    pckyodou()
     knifekyodou()
     //武器発動
     weaponSyori()
@@ -309,7 +317,7 @@ function charaOk(){
         console.log("閻魔")
       }
       if(selctChara === "suuzan"){
-        weapon.push('none');
+        weapon.push('pc');
         console.log("スーザン")
         mp = 29
       }
@@ -326,6 +334,12 @@ function charaOk(){
           knifeXY.push([x + 100, y + 10, "l", 400],[x - 100, y + 10, "r", 400])
         }
       }
+      if(weapon.includes('pc')){//pc
+        if(pcCoolTim <= 0){
+          pcCoolTim = pcMaxCoolTim;
+          console.log('発動')
+          pcXY.push([x + (charaSizeX/2), y + (charaSizeY/2), 0])
+        }}
       if(weapon.includes('hanma-')){//クソデカハンマー
         if(hanmaCoolTime <= 0){
           hanmaCoolTime = hanmaMaxCoolTime;
@@ -375,7 +389,7 @@ function charaOk(){
       if(areaInfo[2] <= 0)poisonAreaXY.splice(i, 1)
         for (let ei = 0; ei < Object.keys(enemyXY).length; ei++) {//敵に触れると
         var enemyInfo = enemyXY[ei];
-        if((enemyInfo[0] < areaInfo[0] + 80)&&(enemyInfo[1] < areaInfo[1] + 80)){//左上から
+        if((enemyInfo[0] < areaInfo[0] + 100)&&(enemyInfo[1] < areaInfo[1] + 100)){//左上から
         if((enemyInfo[0] + enemySizeX > areaInfo[0])&&(enemyInfo[1] + enemySizeY > areaInfo[1])){//右下から
        enemyInfo[2].hp += -2;
         }
@@ -417,6 +431,25 @@ function charaOk(){
       if(hanmaInfo[4] < 1){
         hanmaXY.splice(i, 1);
       }
+    }
+    }
+    function pckyodou(){
+      for (let i = 0; i < Object.keys(pcXY).length; i++) {
+      var pcInfo = pcXY[i];
+      pcInfo[2] += 0.8;
+      pcInfo[0] = x;
+      pcInfo[1] = y;
+      for (let ei = 0; ei < Object.keys(enemyXY).length; ei++) {//敵に触れると
+        var enemyInfo = enemyXY[ei];
+        var cx = x - enemyInfo[0]
+        var cy = y - enemyInfo[1]
+        if(cx * cx + cy * cy < (pcInfo[2] + 200) * (pcInfo[2] + 200)){
+          console.log("接触")
+          enemyInfo[2].boost = enemyInfo[2].boost - 3.3
+          enemyInfo[2].hp += -0.4
+        }
+      }
+      if(pcInfo[2] >= 50)pcXY.splice(i, 1);
     }
     }
     function knifekyodou(){
@@ -506,6 +539,16 @@ function charaOk(){
       ctx.restore();
     }
   }
+  if(weapon.includes('pc')){
+    for (let i = 0; i < Object.keys(pcXY).length; i++) {
+      var pcInfo = pcXY[i];
+      ctx.save();
+      ctx.translate(pcInfo[0] -(charaSizeX), pcInfo[1] -(charaSizeY/2));
+      ctx.drawImage(pcimg, (charaSizeX/2), (charaSizeY/2), 50, 50)
+      ctx.restore();
+
+    }
+  }
   if(weapon.includes('knife')){
       for (let i = 0; i < Object.keys(knifeXY).length; i++) {
       var knifeInfo = knifeXY[i]
@@ -560,7 +603,7 @@ function charaOk(){
       ctx.fillText(`初期武器:クソデカハンマー`, 1000, 700);
       ctx.fillText(`スキル:一騎当千`, 1000, 750);
       ctx.fillText(`メモ:全体的にステータスが高いです`, 1000, 850);
-      ctx.fillText(`初期武器:未実装`, 500, 700);
+      ctx.fillText(`初期武器:ノートPC`, 500, 700);
       ctx.fillText(`スキル:魔女の切り札`, 500, 750);
       ctx.fillText(`メモ:体力が高いです`, 500, 850);
       ctx.fillText(`初期武器:ナイフ`, 0, 700);
@@ -601,7 +644,7 @@ function charaOk(){
     ctx.drawImage(backgroundimg, 0, 0, 1920, 1080);
     for (let i = 0; i < Object.keys(poisonAreaXY).length; i++) {
       var areaInfo = poisonAreaXY[i];
-      ctx.drawImage(potionArea, areaInfo[0], areaInfo[1], 80, 80);
+      ctx.drawImage(potionArea, areaInfo[0], areaInfo[1], 100, 100);
     }
     for (let i = 0; i < Object.keys(itemXY).length; i++) {//アイテム
       var itemInfo = itemXY[i];
@@ -735,6 +778,21 @@ document.addEventListener('keydown', event => {
 
       if(mp < 30 && LvUpSeen){
         console.log('ok')
+        if(LvUpSelect[0][3] === true){
+          speed = speed * 1.25
+          console.log('スピードアップ')
+        }
+        if(LvUpSelect[1][3] === true){
+          maxHp = maxHp * 1.3 
+          hp = hp * 1.2
+          console.log('体力アップ')
+        }
+        if(LvUpSelect[2][3] == true){
+          weaponCooltime = weaponCooltime * 1.35
+          console.log('武器クールタイムダウン')
+        }
+
+
       LvUpSeen = false;
       return;
       }else{
